@@ -31,7 +31,7 @@ export default function TechModal() {
       subTitle:"FullStack Team Industry Project",
       desc: "This is an industry project with FS.",
       link: "https://github.com/mussesseiniris/WorkerDataBlockchain",
-      img: "/images/images/teckStack.png",
+      img: "/images/projectsImg/workerdatablockchain.png",
       techStack:[".Net","C#","React","Next.js","typeScript","Supabase"]
     },
   ];
