@@ -20,6 +20,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Compress images
+        run: |
+          sudo apt-get install -y jpegoptim pngquant
+          find public -name "*.jpg" -o -name "*.jpeg" | xargs -r jpegoptim --max=75 --strip-all
+          find public -name "*.png" | xargs -r pngquant --force --quality=50-75 --ext .png --skip-if-larger
+          echo "Public size after compression: $(du -sh public | cut -f1)"
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
