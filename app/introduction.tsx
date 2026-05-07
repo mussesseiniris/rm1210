@@ -3,22 +3,23 @@ const doto = Doto({
   subsets: ["latin"],
   weight: "400",
 });
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 export default function Introduction() {
   const icons = [
-    { src: "/images/icons/csharp.svg", name: "csharp" },
-    { src: "/images/icons/dotnet.svg", name: "dotnet" },
-    { src: "/images/icons/git.svg", name: "git" },
-    { src: "/images/icons/github_light.svg", name: "github" },
-    { src: "/images/icons/gitlab.svg", name: "gitlab" },
-    { src: "/images/icons/java.svg", name: "java" },
-    { src: "/images/icons/javascript.svg", name: "javascript" },
-    { src: "/images/icons/nextjs_logo_light.svg", name: "nextjs" },
-    { src: "/images/icons/python.svg", name: "python" },
-    { src: "/images/icons/react_wordmark_light.svg", name: "react" },
-    { src: "/images/icons/typescript.svg", name: "typescript" },
-    { src: "/images/icons/vite.svg", name: "vite" },
-    { src: "/images/icons/cursor_wordmark_light.svg", name: "Cursor" },
-    { src: "/images/icons/claude-ai-wordmark-icon_light.svg", name: "Claude" },
+    { src: `${BASE}/images/icons/csharp.svg`, name: "csharp" },
+    { src: `${BASE}/images/icons/dotnet.svg`, name: "dotnet" },
+    { src: `${BASE}/images/icons/git.svg`, name: "git" },
+    { src: `${BASE}/images/icons/github_light.svg`, name: "github" },
+    { src: `${BASE}/images/icons/gitlab.svg`, name: "gitlab" },
+    { src: `${BASE}/images/icons/java.svg`, name: "java" },
+    { src: `${BASE}/images/icons/javascript.svg`, name: "javascript" },
+    { src: `${BASE}/images/icons/nextjs_logo_light.svg`, name: "nextjs" },
+    { src: `${BASE}/images/icons/python.svg`, name: "python" },
+    { src: `${BASE}/images/icons/react_wordmark_light.svg`, name: "react" },
+    { src: `${BASE}/images/icons/typescript.svg`, name: "typescript" },
+    { src: `${BASE}/images/icons/vite.svg`, name: "vite" },
+    { src: `${BASE}/images/icons/cursor_wordmark_light.svg`, name: "Cursor" },
+    { src: `${BASE}/images/icons/claude-ai-wordmark-icon_light.svg`, name: "Claude" },
   ];
 
   return (
@@ -60,7 +61,7 @@ export default function Introduction() {
           </div>
           <div className="w-1/2 flex justify-center">
             <img
-              src="/images/images/girl_transparent.png"
+              src={`${BASE}/images/images/girl_transparent.png`}
               alt="pink"
               className=" h-96 opacity-80"
             />

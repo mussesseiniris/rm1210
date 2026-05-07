@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { div } from "three/tsl";
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 export default function TechModal() {
   const techProjects = [
     {
@@ -7,7 +7,7 @@ export default function TechModal() {
       subTitle:"FullStack Project",
       desc: "This is a garden planner for New Zealanders.",
       link: "https://github.com/mussesseiniris/mygarden-planner",
-      img: "/images/projectsImg/gardenPlanner.png",
+      img: `${BASE}/images/projectsImg/gardenPlanner.png`,
       techStack:["Python","FastAPI","React","javaScript","Postgres"]
     },
     {
@@ -15,7 +15,7 @@ export default function TechModal() {
       desc: "This is an AI intergrated learning coach.",
       subTitle:"FullStack Project",
       link: "https://learning-coach-mussessein.zhefuz.link/",
-      img: "/images/projectsImg/learning-coach.png",
+      img: `${BASE}/images/projectsImg/learning-coach.png`,
       techStack:[".Net","C#","React","javaScript","Postgres","ClaudeAPI"]
     },
     {
@@ -23,7 +23,7 @@ export default function TechModal() {
       subTitle:"FullStack Team Industry Project",
       desc: "This is an industry project with Raygun.",
       link: "https://github.com/mussesseiniris/AI-Agent-Benchmarking-Dashboard",
-      img: "/images/images/teckStack.png",
+      img: `${BASE}/images/images/teckStack.png`,
       techStack:["Python","FastAPI","React","javaScript","Supabase","Autohive Server"]
     },
     {
@@ -31,7 +31,7 @@ export default function TechModal() {
       subTitle:"FullStack Team Industry Project",
       desc: "This is an industry project with FS.",
       link: "https://github.com/mussesseiniris/WorkerDataBlockchain",
-      img: "/images/projectsImg/workerdatablockchain.png",
+      img: `${BASE}/images/projectsImg/workerdatablockchain.png`,
       techStack:[".Net","C#","React","Next.js","typeScript","Supabase"]
     },
   ];
