@@ -43,15 +43,15 @@ jobs:
             --change 'CMD ["nginx", "-g", "daemon off;"]' \
             --change 'EXPOSE 80' \
             /tmp/rootfs.tar.gz $APP_NAME:flat
-          docker save $APP_NAME:flat | gzip -9 > /tmp/image.tar.gz
-          echo "Image size: $(ls -lh /tmp/image.tar.gz | awk '{print $5}')"
+          docker save $APP_NAME:flat | gzip -9 > /tmp/image.tgz
+          echo "Image size: $(ls -lh /tmp/image.tgz | awk '{print $5}')"
 
       - name: Upload image to Tenants
         id: upload
         run: |
           RESPONSE=$(curl -s --max-time 120 -H "Authorization: Bearer $TOKEN" \
             -X POST "https://$BASE_URL/api/v1/docker-images" \
-            -F "file=@/tmp/image.tar.gz")
+            -F "file=@/tmp/image.tgz")
           echo "Upload response: $RESPONSE"
           IMAGE_ID=$(echo "$RESPONSE" | jq -r '.data.id')
           if [ "$IMAGE_ID" = "null" ] || [ -z "$IMAGE_ID" ]; then
