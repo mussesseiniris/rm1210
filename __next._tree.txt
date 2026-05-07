@@ -18,4 +18,4 @@
 :HL["/images/icons/vite.svg","image"]
 :HL["/images/icons/cursor_wordmark_light.svg","image"]
 :HL["/images/icons/claude-ai-wordmark-icon_light.svg","image"]
-0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}},"staleTime":300,"buildId":"peL64LIxez1pobkLtviDm"}
+0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}},"staleTime":300,"buildId":"qCOf741ueILsm0xzqE7Ur"}
