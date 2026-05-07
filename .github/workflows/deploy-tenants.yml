@@ -13,12 +13,15 @@ jobs:
       TOKEN: ${{ secrets.TENANTS_TOKEN }}
       BASE_URL: tenants.zhefuz.link
       APP_NAME: rm1210
-      SERVER_NAME: rm1210
       SITE_NAME: rm1210
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set version
+        id: version
+        run: echo "tag=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
 
       - name: Compress images
         run: |
@@ -32,59 +35,20 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build --platform=linux/amd64 -t $APP_NAME:latest .
+          docker build --platform=linux/amd64 -t $APP_NAME:${{ steps.version.outputs.tag }} .
 
       - name: Export image as minimal flat tar
         run: |
-          CID=$(docker create $APP_NAME:latest)
+          TAG=${{ steps.version.outputs.tag }}
+          CID=$(docker create $APP_NAME:$TAG)
           docker export $CID | gzip -9 > /tmp/rootfs.tar.gz
           docker rm $CID
           docker import \
             --change 'CMD ["nginx", "-g", "daemon off;"]' \
             --change 'EXPOSE 80' \
-            /tmp/rootfs.tar.gz $APP_NAME:flat
-          docker save $APP_NAME:flat | gzip -9 > /tmp/image.tgz
+            /tmp/rootfs.tar.gz $APP_NAME:$TAG
+          docker save $APP_NAME:$TAG | gzip -9 > /tmp/image.tgz
           echo "Image size: $(ls -lh /tmp/image.tgz | awk '{print $5}')"
-
-      - name: Delete old server and image (if exists)
-        run: |
-          # Retry server deletion until it's gone
-          for attempt in $(seq 1 10); do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-              -H "Authorization: Bearer $TOKEN" \
-              "https://$BASE_URL/api/v1/managed-servers/$SERVER_NAME")
-            if [ "$STATUS" != "200" ]; then
-              echo "Server not found, skipping deletion."
-              break
-            fi
-            echo "Attempt $attempt: deleting server..."
-            curl -s -H "Authorization: Bearer $TOKEN" \
-              -X DELETE "https://$BASE_URL/api/v1/managed-servers/$SERVER_NAME"
-            # Poll until actually gone
-            for poll in $(seq 1 12); do
-              sleep 5
-              CHECK=$(curl -s -o /dev/null -w "%{http_code}" \
-                -H "Authorization: Bearer $TOKEN" \
-                "https://$BASE_URL/api/v1/managed-servers/$SERVER_NAME")
-              echo "  Poll $poll: HTTP $CHECK"
-              if [ "$CHECK" != "200" ]; then
-                echo "Server deleted."
-                break 2
-              fi
-            done
-          done
-
-          # Delete old image
-          IMAGES=$(curl -s -H "Authorization: Bearer $TOKEN" \
-            "https://$BASE_URL/api/v1/docker-images")
-          OLD_ID=$(echo "$IMAGES" | jq -r --arg name "$APP_NAME:flat" \
-            '.data[] | select(.name == $name) | .id' | head -1)
-          if [ -n "$OLD_ID" ] && [ "$OLD_ID" != "null" ]; then
-            echo "Deleting old image $OLD_ID..."
-            curl -s -H "Authorization: Bearer $TOKEN" \
-              -X DELETE "https://$BASE_URL/api/v1/docker-images/$OLD_ID"
-            sleep 5
-          fi
 
       - name: Upload image to Tenants
         id: upload
@@ -100,8 +64,11 @@ jobs:
           fi
           echo "image_id=$IMAGE_ID" >> $GITHUB_OUTPUT
 
-      - name: Create server
+      - name: Create new server
+        id: create_server
         run: |
+          TAG=${{ steps.version.outputs.tag }}
+          SERVER_NAME="${APP_NAME}-${TAG}"
           RESPONSE=$(curl -s -H "Authorization: Bearer $TOKEN" \
             -X POST "https://$BASE_URL/api/v1/managed-servers" \
             -H "Content-Type: application/json" \
@@ -112,10 +79,12 @@ jobs:
             echo "Failed to create server: $RESPONSE"
             exit 1
           fi
+          echo "server_name=$SERVER_NAME" >> $GITHUB_OUTPUT
 
       - name: Wait for server to be running
         run: |
-          echo "Polling server status..."
+          SERVER_NAME=${{ steps.create_server.outputs.server_name }}
+          echo "Polling server $SERVER_NAME..."
           for i in $(seq 1 24); do
             STATUS=$(curl -s -H "Authorization: Bearer $TOKEN" \
               "https://$BASE_URL/api/v1/managed-servers/$SERVER_NAME" | jq -r '.data.status')
@@ -151,8 +120,9 @@ jobs:
             echo "Site already exists."
           fi
 
-      - name: Bind server to site
+      - name: Bind new server to site
         run: |
+          SERVER_NAME=${{ steps.create_server.outputs.server_name }}
           RESPONSE=$(curl -s -H "Authorization: Bearer $TOKEN" \
             -X PUT "https://$BASE_URL/api/v1/sites/$SITE_NAME/managed-server" \
             -H "Content-Type: application/json" \
@@ -165,7 +135,4 @@ jobs:
           HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
             "https://$SITE_NAME-mussessein.zhefuz.link/rm1210/")
           echo "Site returned HTTP $HTTP_CODE"
-          if [ "$HTTP_CODE" != "200" ] && [ "$HTTP_CODE" != "301" ] && [ "$HTTP_CODE" != "302" ]; then
-            echo "Warning: site may not be ready yet (HTTP $HTTP_CODE)"
-          fi
           echo "Deployed at: https://$SITE_NAME-mussessein.zhefuz.link/rm1210/"
