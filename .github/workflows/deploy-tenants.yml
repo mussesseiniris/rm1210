@@ -129,6 +129,31 @@ jobs:
             -d "{\"managedServerName\":\"$SERVER_NAME\"}")
           echo "Bind response: $RESPONSE"
 
+      - name: Cleanup old servers and images
+        run: |
+          NEW_SERVER=${{ steps.create_server.outputs.server_name }}
+          # Delete all rm1210-* servers except the new one
+          SERVERS=$(curl -s -H "Authorization: Bearer $TOKEN" \
+            "https://$BASE_URL/api/v1/managed-servers")
+          echo "$SERVERS" | jq -r '.data[] | select(.name | startswith("rm1210-")) | .name' | while read NAME; do
+            if [ "$NAME" != "$NEW_SERVER" ]; then
+              echo "Deleting old server: $NAME"
+              curl -s -H "Authorization: Bearer $TOKEN" \
+                -X DELETE "https://$BASE_URL/api/v1/managed-servers/$NAME" || true
+            fi
+          done
+          # Delete all rm1210 images except the one in use
+          IMAGES=$(curl -s -H "Authorization: Bearer $TOKEN" \
+            "https://$BASE_URL/api/v1/docker-images")
+          CURRENT_IMG=${{ steps.upload.outputs.image_id }}
+          echo "$IMAGES" | jq -r --arg app "$APP_NAME" '.data[] | select(.imageName == $app) | .id' | while read IMG_ID; do
+            if [ "$IMG_ID" != "$CURRENT_IMG" ]; then
+              echo "Deleting old image: $IMG_ID"
+              curl -s -H "Authorization: Bearer $TOKEN" \
+                -X DELETE "https://$BASE_URL/api/v1/docker-images/$IMG_ID" || true
+            fi
+          done
+
       - name: Verify deployment
         run: |
           sleep 5
