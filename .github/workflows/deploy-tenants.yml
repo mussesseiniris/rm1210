@@ -27,16 +27,17 @@ jobs:
         run: |
           docker build --platform=linux/amd64 -t $APP_NAME:latest .
 
-      - name: Export image as tar
+      - name: Export image as compressed tar
         run: |
-          docker save $APP_NAME:latest -o /tmp/image.tar
+          docker save $APP_NAME:latest | gzip -9 > /tmp/image.tar.gz
+          ls -lh /tmp/image.tar.gz
 
       - name: Upload image to Tenants
         id: upload
         run: |
           RESPONSE=$(curl -s -H "Authorization: Bearer $TOKEN" \
             -X POST "https://$BASE_URL/api/v1/docker-images" \
-            -F "file=@/tmp/image.tar")
+            -F "file=@/tmp/image.tar.gz")
           echo "Upload response: $RESPONSE"
           IMAGE_ID=$(echo "$RESPONSE" | jq -r '.data.id')
           if [ "$IMAGE_ID" = "null" ] || [ -z "$IMAGE_ID" ]; then
