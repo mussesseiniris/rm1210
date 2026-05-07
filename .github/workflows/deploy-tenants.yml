@@ -1,0 +1,128 @@
+name: Deploy to Tenants
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      TOKEN: ${{ secrets.TENANTS_TOKEN }}
+      BASE_URL: tenants.zhefuz.link
+      APP_NAME: rm1210
+      SERVER_NAME: rm1210
+      SITE_NAME: rm1210
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: |
+          docker build --platform=linux/amd64 -t $APP_NAME:latest .
+
+      - name: Export image as tar
+        run: |
+          docker save $APP_NAME:latest -o /tmp/image.tar
+
+      - name: Upload image to Tenants
+        id: upload
+        run: |
+          RESPONSE=$(curl -s -H "Authorization: Bearer $TOKEN" \
+            -X POST "https://$BASE_URL/api/v1/docker-images" \
+            -F "file=@/tmp/image.tar")
+          echo "Upload response: $RESPONSE"
+          IMAGE_ID=$(echo "$RESPONSE" | jq -r '.data.id')
+          if [ "$IMAGE_ID" = "null" ] || [ -z "$IMAGE_ID" ]; then
+            echo "Failed to upload image: $RESPONSE"
+            exit 1
+          fi
+          echo "image_id=$IMAGE_ID" >> $GITHUB_OUTPUT
+
+      - name: Delete old server (if exists)
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer $TOKEN" \
+            "https://$BASE_URL/api/v1/managed-servers/$SERVER_NAME")
+          if [ "$STATUS" = "200" ]; then
+            echo "Deleting existing server..."
+            curl -s -H "Authorization: Bearer $TOKEN" \
+              -X DELETE "https://$BASE_URL/api/v1/managed-servers/$SERVER_NAME"
+            sleep 5
+          fi
+
+      - name: Create server
+        run: |
+          RESPONSE=$(curl -s -H "Authorization: Bearer $TOKEN" \
+            -X POST "https://$BASE_URL/api/v1/managed-servers" \
+            -H "Content-Type: application/json" \
+            -d "{\"name\":\"$SERVER_NAME\",\"dockerImageId\":\"${{ steps.upload.outputs.image_id }}\"}")
+          echo "Create server response: $RESPONSE"
+          SUCCESS=$(echo "$RESPONSE" | jq -r '.success')
+          if [ "$SUCCESS" != "true" ]; then
+            echo "Failed to create server: $RESPONSE"
+            exit 1
+          fi
+
+      - name: Wait for server to be running
+        run: |
+          echo "Polling server status..."
+          for i in $(seq 1 24); do
+            STATUS=$(curl -s -H "Authorization: Bearer $TOKEN" \
+              "https://$BASE_URL/api/v1/managed-servers/$SERVER_NAME" | jq -r '.data.status')
+            echo "Attempt $i: status=$STATUS"
+            if [ "$STATUS" = "running" ]; then
+              echo "Server is running."
+              break
+            elif [ "$STATUS" = "failed" ]; then
+              echo "Server failed. Fetching logs..."
+              curl -s -H "Authorization: Bearer $TOKEN" \
+                "https://$BASE_URL/api/v1/managed-servers/$SERVER_NAME/logs"
+              exit 1
+            fi
+            sleep 10
+          done
+          if [ "$STATUS" != "running" ]; then
+            echo "Server did not become ready in time."
+            exit 1
+          fi
+
+      - name: Create site (if not exists)
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer $TOKEN" \
+            "https://$BASE_URL/api/v1/sites/$SITE_NAME")
+          if [ "$STATUS" != "200" ]; then
+            echo "Creating site..."
+            curl -s -H "Authorization: Bearer $TOKEN" \
+              -X POST "https://$BASE_URL/api/v1/sites" \
+              -H "Content-Type: application/json" \
+              -d "{\"name\":\"$SITE_NAME\"}"
+          else
+            echo "Site already exists."
+          fi
+
+      - name: Bind server to site
+        run: |
+          RESPONSE=$(curl -s -H "Authorization: Bearer $TOKEN" \
+            -X PUT "https://$BASE_URL/api/v1/sites/$SITE_NAME/managed-server" \
+            -H "Content-Type: application/json" \
+            -d "{\"managedServerName\":\"$SERVER_NAME\"}")
+          echo "Bind response: $RESPONSE"
+
+      - name: Verify deployment
+        run: |
+          sleep 5
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            "https://$SITE_NAME-mussessein.zhefuz.link/rm1210/")
+          echo "Site returned HTTP $HTTP_CODE"
+          if [ "$HTTP_CODE" != "200" ] && [ "$HTTP_CODE" != "301" ] && [ "$HTTP_CODE" != "302" ]; then
+            echo "Warning: site may not be ready yet (HTTP $HTTP_CODE)"
+          fi
+          echo "Deployed at: https://$SITE_NAME-mussessein.zhefuz.link/rm1210/"
