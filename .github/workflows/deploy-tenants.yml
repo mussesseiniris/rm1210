@@ -23,8 +23,8 @@ jobs:
       - name: Compress images
         run: |
           sudo apt-get install -y jpegoptim pngquant
-          find public -name "*.jpg" -o -name "*.jpeg" | xargs -r jpegoptim --max=75 --strip-all
-          find public -name "*.png" | xargs -r pngquant --force --quality=50-75 --ext .png --skip-if-larger
+          find public \( -name "*.jpg" -o -name "*.jpeg" \) -exec jpegoptim --max=75 --strip-all {} \; || true
+          find public -name "*.png" -exec pngquant --force --quality=50-75 --ext .png --skip-if-larger {} \; || true
           echo "Public size after compression: $(du -sh public | cut -f1)"
 
       - name: Set up Docker Buildx
