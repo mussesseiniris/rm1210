@@ -27,15 +27,22 @@ jobs:
         run: |
           docker build --platform=linux/amd64 -t $APP_NAME:latest .
 
-      - name: Export image as compressed tar
+      - name: Export image as minimal flat tar
         run: |
-          docker save $APP_NAME:latest | gzip -9 > /tmp/image.tar.gz
-          ls -lh /tmp/image.tar.gz
+          CID=$(docker create $APP_NAME:latest)
+          docker export $CID | gzip -9 > /tmp/rootfs.tar.gz
+          docker rm $CID
+          docker import \
+            --change 'CMD ["nginx", "-g", "daemon off;"]' \
+            --change 'EXPOSE 80' \
+            /tmp/rootfs.tar.gz $APP_NAME:flat
+          docker save $APP_NAME:flat | gzip -9 > /tmp/image.tar.gz
+          echo "Image size: $(ls -lh /tmp/image.tar.gz | awk '{print $5}')"
 
       - name: Upload image to Tenants
         id: upload
         run: |
-          RESPONSE=$(curl -s -H "Authorization: Bearer $TOKEN" \
+          RESPONSE=$(curl -s --max-time 120 -H "Authorization: Bearer $TOKEN" \
             -X POST "https://$BASE_URL/api/v1/docker-images" \
             -F "file=@/tmp/image.tar.gz")
           echo "Upload response: $RESPONSE"
