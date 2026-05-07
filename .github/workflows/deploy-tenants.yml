@@ -46,6 +46,31 @@ jobs:
           docker save $APP_NAME:flat | gzip -9 > /tmp/image.tgz
           echo "Image size: $(ls -lh /tmp/image.tgz | awk '{print $5}')"
 
+      - name: Delete old server (if exists)
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer $TOKEN" \
+            "https://$BASE_URL/api/v1/managed-servers/$SERVER_NAME")
+          if [ "$STATUS" = "200" ]; then
+            echo "Deleting existing server..."
+            curl -s -H "Authorization: Bearer $TOKEN" \
+              -X DELETE "https://$BASE_URL/api/v1/managed-servers/$SERVER_NAME"
+            sleep 10
+          fi
+
+      - name: Delete old image (if exists)
+        run: |
+          IMAGES=$(curl -s -H "Authorization: Bearer $TOKEN" \
+            "https://$BASE_URL/api/v1/docker-images")
+          OLD_ID=$(echo "$IMAGES" | jq -r --arg name "$APP_NAME:flat" \
+            '.data[] | select(.name == $name) | .id' | head -1)
+          if [ -n "$OLD_ID" ] && [ "$OLD_ID" != "null" ]; then
+            echo "Deleting old image $OLD_ID..."
+            curl -s -H "Authorization: Bearer $TOKEN" \
+              -X DELETE "https://$BASE_URL/api/v1/docker-images/$OLD_ID"
+            sleep 3
+          fi
+
       - name: Upload image to Tenants
         id: upload
         run: |
@@ -59,18 +84,6 @@ jobs:
             exit 1
           fi
           echo "image_id=$IMAGE_ID" >> $GITHUB_OUTPUT
-
-      - name: Delete old server (if exists)
-        run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            -H "Authorization: Bearer $TOKEN" \
-            "https://$BASE_URL/api/v1/managed-servers/$SERVER_NAME")
-          if [ "$STATUS" = "200" ]; then
-            echo "Deleting existing server..."
-            curl -s -H "Authorization: Bearer $TOKEN" \
-              -X DELETE "https://$BASE_URL/api/v1/managed-servers/$SERVER_NAME"
-            sleep 5
-          fi
 
       - name: Create server
         run: |
