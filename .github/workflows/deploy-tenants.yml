@@ -26,8 +26,8 @@ jobs:
       - name: Compress images
         run: |
           sudo apt-get install -y jpegoptim pngquant
-          find public \( -name "*.jpg" -o -name "*.jpeg" \) -exec jpegoptim --max=75 --strip-all {} \; || true
-          find public -name "*.png" -exec pngquant --force --quality=50-75 --ext .png --skip-if-larger {} \; || true
+          find public \( -name "*.jpg" -o -name "*.jpeg" \) -exec jpegoptim --max=65 --strip-all {} \; || true
+          find public -name "*.png" -exec pngquant --force --quality=40-65 --ext .png --skip-if-larger {} \; || true
           echo "Public size after compression: $(du -sh public | cut -f1)"
 
       - name: Set up Docker Buildx
@@ -53,7 +53,7 @@ jobs:
       - name: Upload image to Tenants
         id: upload
         run: |
-          RESPONSE=$(curl -s --max-time 120 -H "Authorization: Bearer $TOKEN" \
+          RESPONSE=$(curl -s --max-time 300 -H "Authorization: Bearer $TOKEN" \
             -X POST "https://$BASE_URL/api/v1/docker-images" \
             -F "file=@/tmp/image.tgz")
           echo "Upload response: $RESPONSE"
