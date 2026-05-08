@@ -1,9 +1,20 @@
 @import "tailwindcss";
 
+/* * {
+  cursor: url('/rm1210/favicon.png'), auto;
+} */
+
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
 }
+* {
+  cursor: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><text y='28' font-size='28'>🙂</text></svg>") 16 16, auto;
+}
+/* * {
+  cursor: url('/rm1210/iris.png'), auto;
+} */
 
 @theme inline {
   --color-background: var(--background);
