@@ -190,7 +190,7 @@ export default function PaintingModal() {
             Design Work
           </h3></div>
       <div className="flex flex-col items-center justify-center h-fit w-full px-12 py-0 my-6">
-        <div className="z-[60] border-2 border-white p-4 md:p-14 flex flex-col items-center rounded-2xl">
+        <div className="z-[60] border-2 border-white p-14 flex flex-col items-center rounded-2xl">
 
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mx-6">

@@ -26,7 +26,7 @@ export default function Introduction() {
     <div className="flex flex-col items-center py-6 px-12 w-full overflow-x-hidden my-6">
       {/* <img src="/images/images/pawel1.jpg" alt="pink" className=" h-96 opacity-80"/> */}
 
-      <div className="z-[60] border-2 border-white p-4 md:p-14 flex flex-col items-center rounded-2xl w-full overflow-hidden">
+      <div className="z-[60] border-2 border-white p-14 flex flex-col items-center rounded-2xl w-full overflow-hidden">
         <div className="flex flex-row items-center justify-between w-full">
           <div className="flex flex-col w-full md:w-1/2 justify-center">
             <p className="text-xl text-bold text-pink-300 py-4 font-bold">
