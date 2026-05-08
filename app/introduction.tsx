@@ -73,7 +73,7 @@ export default function Introduction() {
             {[...icons, ...icons].map((icon, i) => (
               <div
                 key={i}
-                className="flex-shrink-0 mx-4 w-16 h-16 border border-1 border-white/50 bg-pink-200/20 flex items-center justify-center rounded-2xl"
+                className="flex-shrink-0 mx-4 w-16 h-16 border border-1 border-white/50 bg-pink-200/70 flex items-center justify-center rounded-2xl"
               >
                 <img
                   src={icon.src}

@@ -5,14 +5,14 @@ export default function TechModal() {
     {
       title: "Garden Plan",
       subTitle:"FullStack Project",
-      desc: "This is a garden planner for New Zealanders.",
+      desc: "A garden planner for New Zealanders.",
       link: "https://github.com/mussesseiniris/mygarden-planner",
       img: `${BASE}/images/projectsImg/gardenPlanner.png`,
       techStack:["Python","FastAPI","React","javaScript","Postgres"]
     },
     {
       title: "Learning Coach",
-      desc: "This is an AI intergrated learning coach.",
+      desc: "An AI intergrated learning coach.",
       subTitle:"FullStack Project",
       link: "https://learning-coach-mussessein.zhefuz.link/",
       img: `${BASE}/images/projectsImg/learning-coach.png`,
@@ -21,7 +21,7 @@ export default function TechModal() {
     {
       title: "AI Agent Benchmarking",
       subTitle:"FullStack Team Industry Project",
-      desc: "This is an industry project with Raygun.",
+      desc: "An industry project with Raygun.",
       link: "https://github.com/mussesseiniris/AI-Agent-Benchmarking-Dashboard",
       img: `${BASE}/images/images/teckStack.png`,
       techStack:["Python","FastAPI","React","javaScript","Supabase","Autohive Server"]
@@ -29,7 +29,7 @@ export default function TechModal() {
     {
       title: "Worker dataBlockChain",
       subTitle:"FullStack Team Industry Project",
-      desc: "This is an industry project with FS.",
+      desc: "An industry project with FS.",
       link: "https://github.com/mussesseiniris/WorkerDataBlockchain",
       img: `${BASE}/images/projectsImg/workerdatablockchain.png`,
       techStack:[".Net","C#","React","Next.js","typeScript","Supabase"]
@@ -70,7 +70,7 @@ export default function TechModal() {
                   />
                 </div>
               </a>
-              <h2 className="text-black text-start text-sm px-2 py-1 whitespace-pre-line">
+              <h2 className="text-pink-200 text-start text-sm px-2 py-3 whitespace-pre-line">
                 {r.desc}
               </h2>
               <div className="flex row flex-wrap gap-2 items-center justify-center ">

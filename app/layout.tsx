@@ -9,8 +9,11 @@ import { Jersey_25_Charted } from "next/font/google"
 
 
 export const metadata: Metadata = {
-  title: "Iris",
+  title: "Iris's Portfolio",
   description: "Software Developer Portfolio",
+   icons: {
+   icon: "/rm1210/favicon.png",        
+  },
 };
 const playfair = Playfair_Display({ subsets: ["latin"] });
 const jersey= Jersey_25_Charted({ subsets: ["latin"],weight: "400" })
